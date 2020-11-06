@@ -1,0 +1,1 @@
+cpy and paste this files into rtdruid project
