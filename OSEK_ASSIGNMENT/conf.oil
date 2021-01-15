@@ -1,0 +1,73 @@
+
+CPU mySystem {
+
+  OS myOs {
+  	/*additional compilation flags passed to erika enterprise makefile (translated into #defines) */
+    //EE_OPT = "OS_EE_APPL_BUILD_DEBUG";
+    //EE_OPT = "OS_EE_BUILD_DEBUG";
+
+    USERESSCHEDULER = FALSE;
+
+    CPU_DATA = AVR8 {
+      MULTI_STACK = FALSE;/*our task doesn't call any blocking primitives so a private stack is not needed*/
+      IDLEHOOK = FALSE; 
+    };
+
+    MCU_DATA = MEGA {
+      MODEL = MEGA_328p;
+    };
+	
+	/*I use LIB for 'on the fly' creation of library during the application compilation process */
+    LIB = ARDUINO {
+      /* Used to select Board: UNO or NANO */
+      SDK_BOARD = UNO;
+      /* Used to select vendor: CC or ORG */
+      VARIANT = CC {
+        VERSION = "1.8.5";
+      };
+      /* Create libarduino.a */
+      STAND_ALONE = TRUE;
+    };
+
+    KERNEL_TYPE = OSEK {
+      CLASS = BCC1;/*we just use 1 basic task with 1 pending activation */
+      RQ = LL; /*we do not need multiple queues and priorities, because we have just one task.[RQ=LL--->Ready Queue implemented as linked list*/
+    };
+	/*just for debug inital message*/
+    STARTUPHOOK = TRUE;
+
+  };
+
+  APPDATA myApp {
+    APP_SRC = "code.cpp";
+  };
+
+  COUNTER SystemTimer {
+    MINCYCLE = 1;
+    MAXALLOWEDVALUE = 65535;
+    TICKSPERBASE = 1;
+    TYPE = HARDWARE {
+      SYSTEM_TIMER = TRUE;
+      PRIORITY     = 1;
+      DEVICE       = "TIMER1_COMPA";
+    };
+    SECONDSPERTICK = 0.001;
+  };
+
+  ALARM AlarmTask1 {
+    COUNTER = SystemTimer;
+    ACTION = ACTIVATETASK {
+      TASK = Task1;
+    };
+    AUTOSTART = TRUE {
+      ALARMTIME = 1;
+      CYCLETIME = 100;
+    };
+  };
+
+  TASK Task1 {
+    PRIORITY = 1;
+    ACTIVATION=1;
+    SCHEDULE = NON;
+  };
+};
